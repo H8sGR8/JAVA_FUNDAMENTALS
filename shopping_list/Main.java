@@ -5,7 +5,7 @@ class FileHendler {
 
   File file;
   @SuppressWarnings("rawtypes")
-  HashMap<String, ArrayList> shoppingList= new HashMap<>();
+  HashMap<String, ArrayList> productList= new HashMap<>();
 
   FileHendler(String fileName){
     file = new File(fileName);
@@ -18,12 +18,12 @@ class FileHendler {
     String nextLine = readedFile.nextLine();
     String[] categories = nextLine.split(";");
     ArrayList<String> products = new ArrayList<>();
-    for (String category : categories) shoppingList.put(category, (ArrayList) products.clone());
+    for (String category : categories) productList.put(category, (ArrayList) products.clone());
     while(readedFile.hasNextLine()){
       currentCategory = 0;
       for (String product : readedFile.nextLine().split(";")){
         if("".equals(product)) continue;
-        shoppingList.get(categories[currentCategory]).add(product);
+        productList.get(categories[currentCategory]).add(product);
         currentCategory++;
       }
     }
@@ -33,7 +33,11 @@ class FileHendler {
     @SuppressWarnings({"rawtypes"})
     HashMap<String, ArrayList> getShoppingList() throws Exception {
       readFile();
-      return shoppingList;
+      return productList;
+    }
+
+    void saveShoppingList(){
+
     }
 }
 
@@ -52,22 +56,36 @@ class UserAction {
       keysSet = shopping_list.keySet();
     }
 
-    void addProduct(String caregory, String product){
-
+    @SuppressWarnings("unchecked")
+    boolean addProduct(String category, String product){
+      if(keysSet.contains(category)){
+        shopping_list.get(category).add(product);
+        return true;
+      }
+      return false;
     }
 
-    void removeProduct(String caregory, String product){
-
+    boolean removeProduct(String category, String product){
+      if(keysSet.contains(category)){
+        shopping_list.remove(category, product);
+        return true;
+      }
+      return false;
     }
 
-    void addCategory(String caregory){
-
+    @SuppressWarnings("rawtypes")
+    void addCategory(String category){
+      ArrayList<String> products = new ArrayList<> ();
+      shopping_list.put(category, (ArrayList) products.clone());
     }
 
-    void removeCategory(String caregory){
-
+    boolean removeCategory(String category){
+      if(keysSet.contains(category)){
+        shopping_list.remove(category);
+        return true;
+      }
+      return false;
     }
-
 }
 
 
@@ -79,50 +97,97 @@ class UI {
     action = new UserAction(file);
   }
 
-  void displayMainMenu(){
-    System.out.print
-    ("""
-     1. Display shopping list
-     2. Save shopping list
-     3. Add element to category
-     4. Delete element from category
-     5. Add category
-     6. Delete category
-     7. Info
-     8. Exit
-     """);
+  void clear(){
+    System.out.print("\033\143");
   }
 
-  boolean manageMainMenu(Scanner menuSelect, UserAction action){
-    String input = menuSelect.nextLine();
+  void displayMainMenu(){
+    System.out.print("""
+      1. Display shopping list
+      2. Save shopping list
+      3. Add element to category
+      4. Delete element from category
+      5. Add category
+      6. Delete category
+      7. Info
+      8. Exit
+      """);
+  }
+
+  void displayShoppingList(){
+
+  }
+
+  void displayAddProductProcess(){
+    String category, product;
+    category = "";
+    product = "";
+    action.addProduct(category, product);
+  }
+
+  void displayRemoveProductProcess(){
+    String category, product;
+    category = "";
+    product = "";
+    action.removeProduct(category, product);
+  }
+
+  void displayAddCategoryProcess(){
+    String category;
+    category = "";
+    action.addCategory(category);
+  }
+
+  void displayRemoveCategoryProcess(){
+    String category;
+    category = "";
+    action.removeCategory(category);
+  }
+
+
+  void displayInfo(Scanner select){
+    while(!"e".equals(select.nextLine())){
+      clear();
+      System.out.print("""
+        Program to generate txt shopping list from csv product list
+        Pick options in menu to modify the list
+
+        Press "e" to go back to main menu
+        """);
+    }
+  }
+
+  boolean manageMainMenu(Scanner select, UserAction action){
+    String input = select.next();
     switch(input){
-      case "1" -> {}
-      case "2" -> {}
-      case "3" -> {}
-      case "4" -> {}
-      case "5" -> {}
-      case "6" -> {}
-      case "7" -> {}
+      case "1" -> displayShoppingList();
+      case "2" -> action.fileToRead.saveShoppingList();
+      case "3" -> displayAddProductProcess();
+      case "4" -> displayRemoveProductProcess();
+      case "5" -> displayAddCategoryProcess();
+      case "6" -> displayRemoveCategoryProcess();
+      case "7" -> displayInfo(select);
       case "8" -> {return false;}
     }
     return true;
   }
 
   void mainUI() throws Exception{
-    Scanner menuSelect = new Scanner(System.in);
+    Scanner select = new Scanner(System.in);
     boolean run = true;
     while(run) {
-      System.out.print("\033\143");
+      clear();
       displayMainMenu();
-      run = manageMainMenu(menuSelect, action);
+      run = manageMainMenu(select, action);
     }
   }
 }
 
 public class Main {
   public static void main(String[] args) throws Exception {
-    String file = "shopping_list\\shopping_list.csv";
+    String file = "JAVA\\shopping_list\\shopping_list.csv";
     UI ui = new UI(file);
     ui.mainUI();
+    ui.clear();
   }
 }
