@@ -1,13 +1,13 @@
 import java.io.*;
 import java.util.*;
 
-class FileHendler {
+class FileHandler {
 
   File file;
   @SuppressWarnings("rawtypes")
   HashMap<String, ArrayList> productList= new HashMap<>();
 
-  FileHendler(String fileName){
+  FileHandler(String fileName){
     file = new File(fileName);
   }
 
@@ -22,9 +22,9 @@ class FileHendler {
     while(readedFile.hasNextLine()){
       currentCategory = 0;
       for (String product : readedFile.nextLine().split(";")){
-        if("".equals(product)) continue;
-        productList.get(categories[currentCategory]).add(product);
         currentCategory++;
+        if("".equals(product)) continue;
+        productList.get(categories[currentCategory - 1]).add(product);
       }
     }
     readedFile.close();
@@ -44,14 +44,14 @@ class FileHendler {
 
 class UserAction {
 
-  FileHendler fileToRead;
+  FileHandler fileToRead;
   @SuppressWarnings("rawtypes")
   HashMap<String, ArrayList> shopping_list;
   Set<String> keysSet;
 
     @SuppressWarnings({ })
     UserAction(String file) throws Exception {
-      fileToRead = new FileHendler(file);
+      fileToRead = new FileHandler(file);
       shopping_list = fileToRead.getShoppingList();
       keysSet = shopping_list.keySet();
     }
@@ -114,8 +114,22 @@ class UI {
       """);
   }
 
-  void displayShoppingList(){
+  String createShoppingList(){
+    String shopping_list = "";
+    for(String category : action.keysSet){
+      shopping_list += (category + ":\n");
+        for (Object product : action.shopping_list.get(category)) {
+          shopping_list += ("\t" + product + "\n");
+        }
+    }
+    return shopping_list;
+  }
 
+  void displayShoppingList(Scanner select){
+    while(!"e".equals(select.nextLine())){
+      clear();
+      System.out.print(createShoppingList() + "\nPress \"e\" to go back to main menu\n");
+    }
   }
 
   void displayAddProductProcess(){
@@ -160,7 +174,7 @@ class UI {
   boolean manageMainMenu(Scanner select, UserAction action){
     String input = select.next();
     switch(input){
-      case "1" -> displayShoppingList();
+      case "1" -> displayShoppingList(select);
       case "2" -> action.fileToRead.saveShoppingList();
       case "3" -> displayAddProductProcess();
       case "4" -> displayRemoveProductProcess();
