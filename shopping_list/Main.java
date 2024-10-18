@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.*;
 
+
 class FileHandler {
 
   File file;
@@ -36,8 +37,11 @@ class FileHandler {
       return productList;
     }
 
-    void saveShoppingList(){
-
+  @SuppressWarnings("ConvertToTryWithResources")
+    void saveShoppingList(String shoping_list) throws IOException{
+      FileWriter fileToWrite = new FileWriter("JAVA\\shopping_list\\shopping_list.txt");
+      fileToWrite.write(shoping_list);
+      fileToWrite.close();
     }
 }
 
@@ -66,8 +70,8 @@ class UserAction {
     }
 
     boolean removeProduct(String category, String product){
-      if(keysSet.contains(category)){
-        shopping_list.remove(category, product);
+      if(shopping_list.get(category).contains(product)){
+        shopping_list.get(category).remove(product);
         return true;
       }
       return false;
@@ -92,9 +96,11 @@ class UserAction {
 class UI {
 
   UserAction action;
+  Scanner select;
 
   UI(String file) throws Exception{
     action = new UserAction(file);
+    select = new Scanner(System.in);
   }
 
   void clear(){
@@ -125,81 +131,120 @@ class UI {
     return shopping_list;
   }
 
-  void displayShoppingList(Scanner select){
-    while(!"e".equals(select.nextLine())){
+  void displayShoppingList(){
+    do{
       clear();
-      System.out.print(createShoppingList() + "\nPress \"e\" to go back to main menu\n");
-    }
+      System.out.print(createShoppingList() + "\nPress \"q\" to go back to main menu\n");
+    }while(!"q".equals(select.nextLine()));
+  }
+
+  void displaySaveShoppingListProcess() throws IOException{
+    action.fileToRead.saveShoppingList(createShoppingList());
+    do{
+      clear();
+      System.out.print("A shopping list saved in txt file\n\nPress \"q\" to go back to main menu\n");
+    }while(!"q".equals(select.nextLine()));
   }
 
   void displayAddProductProcess(){
     String category, product;
-    category = "";
-    product = "";
-    action.addProduct(category, product);
+    String outputMessage = "Could not add a product";
+    clear();
+    System.out.println("Choose a category by inserting its name\nCetegories: " + action.keysSet);
+    category = select.nextLine();
+    clear();
+    System.out.println("Insert a name of a product to add");
+    product = select.nextLine();
+    if (action.addProduct(category, product)) outputMessage = "A product successfully added";
+    do{
+      clear();
+      System.out.print(outputMessage + "\n\nPress \"q\" to go back to main menu\n");
+    }while(!"q".equals(select.nextLine()));
   }
 
   void displayRemoveProductProcess(){
     String category, product;
-    category = "";
-    product = "";
-    action.removeProduct(category, product);
+    String outputMessage = "Could not remove a product";
+    clear();
+    System.out.println("Choose a category by inserting its name\nCetegories: " + action.keysSet);
+    category = select.nextLine();
+    if(action.keysSet.contains(category)){
+      clear();
+      System.out.println("Insert a name of a product to remove\nProducts: " + action.shopping_list.get(category));
+      product = select.nextLine();
+      if (action.removeProduct(category, product)) outputMessage = "A product successfully removed";
+    }
+    do{
+      clear();
+      System.out.print(outputMessage + "\n\nPress \"q\" to go back to main menu\n");
+    }while(!"q".equals(select.nextLine()));
   }
 
   void displayAddCategoryProcess(){
     String category;
-    category = "";
+    clear();
+    System.out.println("Insert a name of a category to add");
+    category = select.nextLine();
     action.addCategory(category);
+    do{
+      clear();
+      System.out.print( "A category successfully added\n\nPress \"q\" to go back to main menu\n");
+    }while(!"q".equals(select.nextLine()));
   }
 
   void displayRemoveCategoryProcess(){
     String category;
-    category = "";
-    action.removeCategory(category);
+    String outputMessage = "Could not remove a category";
+    clear();
+    System.out.println("Insert a name of a category to remove\nCategories: " + action.keysSet);
+    category = select.nextLine();
+    if (action.removeCategory(category)) outputMessage = "A category successfully removed";
+    do{
+      clear();
+      System.out.print(outputMessage + "\n\nPress \"q\" to go back to main menu\n");
+    }while(!"q".equals(select.nextLine()));
   }
 
-
-  void displayInfo(Scanner select){
-    while(!"e".equals(select.nextLine())){
+  void displayInfo(){
+    do{
       clear();
       System.out.print("""
         Program to generate txt shopping list from csv product list
-        Pick options in menu to modify the list
+        Pick option by pressing assigned number in menu to modify the list
 
-        Press "e" to go back to main menu
+        Press "q" to go back to main menu
         """);
-    }
+    }while(!"q".equals(select.nextLine()));
   }
 
-  boolean manageMainMenu(Scanner select, UserAction action){
-    String input = select.next();
-    switch(input){
-      case "1" -> displayShoppingList(select);
-      case "2" -> action.fileToRead.saveShoppingList();
+  boolean manageMainMenu(UserAction action) throws IOException{
+    switch(select.nextLine()){
+      case "1" -> displayShoppingList();
+      case "2" -> displaySaveShoppingListProcess();
       case "3" -> displayAddProductProcess();
       case "4" -> displayRemoveProductProcess();
       case "5" -> displayAddCategoryProcess();
       case "6" -> displayRemoveCategoryProcess();
-      case "7" -> displayInfo(select);
+      case "7" -> displayInfo();
       case "8" -> {return false;}
     }
     return true;
   }
 
   void mainUI() throws Exception{
-    Scanner select = new Scanner(System.in);
     boolean run = true;
     while(run) {
       clear();
       displayMainMenu();
-      run = manageMainMenu(select, action);
+      run = manageMainMenu(action);
     }
   }
 }
 
+
 public class Main {
   public static void main(String[] args) throws Exception {
-    String file = "JAVA\\shopping_list\\shopping_list.csv";
+    String file = "JAVA\\shopping_list\\product_list.csv";
     UI ui = new UI(file);
     ui.mainUI();
     ui.clear();
