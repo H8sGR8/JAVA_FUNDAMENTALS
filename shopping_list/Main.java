@@ -22,8 +22,8 @@ class FileHandler {
   @SuppressWarnings("rawtypes")
   HashMap<String, ArrayList> productList= new HashMap<>();
 
-  FileHandler(String fileName){
-    file = new File(fileName);
+  FileHandler(String filePath){
+    file = new File(filePath);
   }
 
   @SuppressWarnings({ "ConvertToTryWithResources", "unchecked", "rawtypes" })
@@ -58,10 +58,10 @@ class FileHandler {
   }
 
   @SuppressWarnings("ConvertToTryWithResources")
-  boolean saveShoppingList(String shoping_list, String save_path){
+  boolean saveShoppingList(String shoping_list, String savePath){
     FileWriter fileToWrite;
     try {
-      fileToWrite = new FileWriter(save_path);
+      fileToWrite = new FileWriter(savePath);
       fileToWrite.write(shoping_list);
       fileToWrite.close();
     } catch (IOException exception) {
@@ -80,8 +80,8 @@ class UserAction {
   Set<String> keysSet;
 
     @SuppressWarnings({ })
-    UserAction(String file) {
-      fileToRead = new FileHandler(file);
+    UserAction(String filePath) {
+      fileToRead = new FileHandler(filePath);
       shopping_list = fileToRead.getShoppingList();
       keysSet = shopping_list.keySet();
     }
@@ -124,8 +124,8 @@ class UI {
   UserAction action;
   Scanner select;
 
-  UI(String file){
-    action = new UserAction(file);
+  UI(String filePath){
+    action = new UserAction(filePath);
     select = new Scanner(System.in);
   }
 
@@ -164,9 +164,9 @@ class UI {
     }while(!"q".equals(select.nextLine()));
   }
 
-  void displaySaveShoppingListProcess(String save_path){
+  void displaySaveShoppingListProcess(String savePath){
     String outputMessage = "Could not save a shopping list";
-    if (action.fileToRead.saveShoppingList(createShoppingList(), save_path)) outputMessage = "A shopping list saved in txt file";
+    if (action.fileToRead.saveShoppingList(createShoppingList(), savePath)) outputMessage = "A shopping list saved in txt file";
     do{
       clear();
       System.out.print(outputMessage + "\n\nPress \"q\" to go back to main menu\n");
@@ -244,10 +244,10 @@ class UI {
     }while(!"q".equals(select.nextLine()));
   }
 
-  boolean manageMainMenu(UserAction action, String save_path){
+  boolean manageMainMenu(UserAction action, String savePath){
     switch(select.nextLine()){
       case "1" -> displayShoppingList();
-      case "2" -> displaySaveShoppingListProcess(save_path);
+      case "2" -> displaySaveShoppingListProcess(savePath);
       case "3" -> displayAddProductProcess();
       case "4" -> displayRemoveProductProcess();
       case "5" -> displayAddCategoryProcess();
@@ -258,12 +258,12 @@ class UI {
     return true;
   }
 
-  void mainUI(String save_path){
+  void mainUI(String savePath){
     boolean run = true;
     while(run) {
       clear();
       displayMainMenu();
-      run = manageMainMenu(action, save_path);
+      run = manageMainMenu(action, savePath);
     }
   }
 }
@@ -271,10 +271,10 @@ class UI {
 
 public class Main {
   public static void main(String[] args){
-    String file = "JAVA\\shopping_list\\product_list.csv";
-    String save_path = "JAVA\\shopping_list\\shopping_list.txt";
-    UI ui = new UI(file);
-    ui.mainUI(save_path);
+    String filePath = "JAVA\\shopping_list\\product_list.csv";
+    String savePath = "JAVA\\shopping_list\\shopping_list.txt";
+    UI ui = new UI(filePath);
+    ui.mainUI(savePath);
     UI.clear();
   }
 }
