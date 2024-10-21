@@ -2,6 +2,20 @@ import java.io.*;
 import java.util.*;
 
 
+class ErrorHandler {
+
+  static boolean couldNotWriteToFile(){
+    return false;
+  }
+
+  static void couldNotOpenProductFile(){
+    UI.clear();
+    System.out.print("Could not open a product file");
+    System.exit(1);
+  }
+}
+
+
 class FileHandler {
 
   File file;
@@ -13,9 +27,15 @@ class FileHandler {
   }
 
   @SuppressWarnings({ "ConvertToTryWithResources", "unchecked", "rawtypes" })
-  void readFile() throws Exception{
+  void readFile(){
     int currentCategory;
-    Scanner readedFile = new Scanner(file);
+    Scanner readedFile;
+    try {
+      readedFile = new Scanner(file);
+    } catch (FileNotFoundException exception) {
+      ErrorHandler.couldNotOpenProductFile();
+      return;
+    }
     String nextLine = readedFile.nextLine();
     String[] categories = nextLine.split(";");
     ArrayList<String> products = new ArrayList<>();
@@ -31,18 +51,24 @@ class FileHandler {
     readedFile.close();
   }
 
-    @SuppressWarnings({"rawtypes"})
-    HashMap<String, ArrayList> getShoppingList() throws Exception {
-      readFile();
-      return productList;
-    }
+  @SuppressWarnings({"rawtypes"})
+  HashMap<String, ArrayList> getShoppingList(){
+    readFile();
+    return productList;
+  }
 
   @SuppressWarnings("ConvertToTryWithResources")
-    void saveShoppingList(String shoping_list) throws IOException{
-      FileWriter fileToWrite = new FileWriter("JAVA\\shopping_list\\shopping_list.txt");
+  boolean saveShoppingList(String shoping_list, String save_path){
+    FileWriter fileToWrite;
+    try {
+      fileToWrite = new FileWriter(save_path);
       fileToWrite.write(shoping_list);
       fileToWrite.close();
+    } catch (IOException exception) {
+      return ErrorHandler.couldNotWriteToFile();
     }
+    return true;
+  }
 }
 
 
@@ -54,7 +80,7 @@ class UserAction {
   Set<String> keysSet;
 
     @SuppressWarnings({ })
-    UserAction(String file) throws Exception {
+    UserAction(String file) {
       fileToRead = new FileHandler(file);
       shopping_list = fileToRead.getShoppingList();
       keysSet = shopping_list.keySet();
@@ -98,12 +124,12 @@ class UI {
   UserAction action;
   Scanner select;
 
-  UI(String file) throws Exception{
+  UI(String file){
     action = new UserAction(file);
     select = new Scanner(System.in);
   }
 
-  void clear(){
+  static void clear(){
     System.out.print("\033\143");
   }
 
@@ -138,11 +164,12 @@ class UI {
     }while(!"q".equals(select.nextLine()));
   }
 
-  void displaySaveShoppingListProcess() throws IOException{
-    action.fileToRead.saveShoppingList(createShoppingList());
+  void displaySaveShoppingListProcess(String save_path){
+    String outputMessage = "Could not save a shopping list";
+    if (action.fileToRead.saveShoppingList(createShoppingList(), save_path)) outputMessage = "A shopping list saved in txt file";
     do{
       clear();
-      System.out.print("A shopping list saved in txt file\n\nPress \"q\" to go back to main menu\n");
+      System.out.print(outputMessage + "\n\nPress \"q\" to go back to main menu\n");
     }while(!"q".equals(select.nextLine()));
   }
 
@@ -217,10 +244,10 @@ class UI {
     }while(!"q".equals(select.nextLine()));
   }
 
-  boolean manageMainMenu(UserAction action) throws IOException{
+  boolean manageMainMenu(UserAction action, String save_path){
     switch(select.nextLine()){
       case "1" -> displayShoppingList();
-      case "2" -> displaySaveShoppingListProcess();
+      case "2" -> displaySaveShoppingListProcess(save_path);
       case "3" -> displayAddProductProcess();
       case "4" -> displayRemoveProductProcess();
       case "5" -> displayAddCategoryProcess();
@@ -231,22 +258,23 @@ class UI {
     return true;
   }
 
-  void mainUI() throws Exception{
+  void mainUI(String save_path){
     boolean run = true;
     while(run) {
       clear();
       displayMainMenu();
-      run = manageMainMenu(action);
+      run = manageMainMenu(action, save_path);
     }
   }
 }
 
 
 public class Main {
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args){
     String file = "JAVA\\shopping_list\\product_list.csv";
+    String save_path = "JAVA\\shopping_list\\shopping_list.txt";
     UI ui = new UI(file);
-    ui.mainUI();
-    ui.clear();
+    ui.mainUI(save_path);
+    UI.clear();
   }
 }
