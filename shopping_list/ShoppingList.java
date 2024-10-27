@@ -30,8 +30,8 @@ class Category {
   }
 
   String getProductsNames(){
-    String productsNames = "||";
-    for (Product product : products) productsNames += (product.getProductName() + "|| ");
+    String productsNames = "|| ";
+    for (Product product : products) productsNames += (product.getProductName() + " || ");
     return productsNames;
   }
 
