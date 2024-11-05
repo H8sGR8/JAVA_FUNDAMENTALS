@@ -5,13 +5,12 @@ import java.util.*;
 
 public class ShoppingListApp {
 
-  ProductList productList = new ProductList();
   ShoppingList shoppingList = new ShoppingList();
   Scanner select;
 
   ShoppingListApp(){
     select = new Scanner(System.in);
-    productList.fillProductList();
+    shoppingList.fillList();
   }
 
   static void clear(){
@@ -24,8 +23,10 @@ public class ShoppingListApp {
       2. Save shopping list
       3. Add element to category
       4. Delete element from category
-      5. Info
-      6. Exit
+      5. Add a category
+      6. Delete a category
+      7. Info
+      8. Exit
       """);
   }
 
@@ -47,20 +48,19 @@ public class ShoppingListApp {
 
   void displayAddProductProcess(){
     String categoryName, productName;
-    String outputMessage = "Could not add a product";
+    String outputMessage = "Could not find a category";
     clear();
-    System.out.println("Choose a category by inserting its name\nCetegories: " + productList.getCategoriesNames());
+    System.out.println("Choose a category by inserting its name\nCetegories: " + shoppingList.getCategoriesNames());
     categoryName = select.nextLine();
-    Category productCategory, shoppingCategory;
-    if((productCategory =  productList.checkIfCategoryExist(categoryName)) != null){
+    Category category;
+    if((category =  shoppingList.checkIfCategoryExist(categoryName)) != null){
+      outputMessage = "could not find a product";
       clear();
-      System.out.println("Insert a name of a product to add\nProducts " + productCategory.getProductsNames());
+      System.out.println("Insert a name of a product to add");
       productName = select.nextLine();
-      if (productCategory.checkIfProductExist(productName) != null) {
+      if (category.checkIfProductExist(productName) == null) {
         outputMessage = "A product successfully added";
-        shoppingList.addCategory(categoryName);
-        shoppingCategory = shoppingList.checkIfCategoryExist(categoryName);
-        shoppingCategory.addProductToCategory(productName);
+        category.addProductToCategory(productName);
       }
     }
     do{
@@ -89,6 +89,38 @@ public class ShoppingListApp {
     }while(!"q".equals(select.nextLine()));
   }
 
+  void displayAddCategoryProcess(){
+    String categoryName;
+    String outputMessage = "Could not add a category";
+    clear();
+    System.out.println("Insert a name of a category to add");
+    categoryName = select.nextLine();
+    if(shoppingList.checkIfCategoryExist(categoryName) == null){
+      shoppingList.addCategory(categoryName);
+      outputMessage = "A category added successfully";
+    }
+    do{
+      clear();
+      System.out.print( outputMessage + "\n\nPress \"q\" to go back to main menu\n");
+    }while(!"q".equals(select.nextLine()));
+  }
+
+  void displayRemoveCategoryProcess(){
+    String categoryName;
+    String outputMessage = "Could not remove a category";
+    clear();
+    System.out.println("Insert a name of a category to remove\nCategories: " + shoppingList.getCategoriesNames());
+    categoryName = select.nextLine();
+    if (shoppingList.checkIfCategoryExist(categoryName) != null){
+      shoppingList.removeCategory(categoryName);
+      outputMessage = "A category successfully removed";
+    }
+    do{
+      clear();
+      System.out.print(outputMessage + "\n\nPress \"q\" to go back to main menu\n");
+    }while(!"q".equals(select.nextLine()));
+  }
+
   void displayInfo(){
     do{
       clear();
@@ -107,8 +139,10 @@ public class ShoppingListApp {
       case "2" -> displaySaveShoppingListProcess();
       case "3" -> displayAddProductProcess();
       case "4" -> displayRemoveProductProcess();
-      case "5" -> displayInfo();
-      case "6" -> {return false;}
+      case "5" -> displayAddCategoryProcess();
+      case "6" -> displayRemoveCategoryProcess();
+      case "7" -> displayInfo();
+      case "8" -> {return false;}
     }
     return true;
   }
