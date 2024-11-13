@@ -1,47 +1,27 @@
 package shopping_list_creator;
 
-import java.io.*;
-import java.util.*;
-
-class ErrorHandler {
-
-  static boolean couldNotWriteToFile(){
-    return false;
-  }
-
-  static void couldNotOpenProductFile(){
-    ShoppingListApp.clear();
-    System.out.print("Could not open a product file");
-    System.exit(1);
-  }
-}
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 
 
 public class FileHandler {
-  static String filePath = "shopping_list_creator\\product_list.csv";
-  static String savePath = "shopping_list_creator\\shopping_list.txt";
+  static final String FILE_PATH = "shopping_list_creator\\product_list.csv";
+  static final String SAVE_PATH = "shopping_list_creator\\shopping_list.txt";
 
 
-  public static Scanner readFile(){
-    try {
-      Scanner readFile;
-      readFile = new Scanner(new File(filePath));
-      return readFile;
-    } catch (FileNotFoundException exception) {
-      ErrorHandler.couldNotOpenProductFile();
-    }
-    return null;
+  public static Scanner readFile() throws FileNotFoundException{
+    Scanner readFile;
+    readFile = new Scanner(new File(FILE_PATH));
+    return readFile;
   }
 
-  public static boolean saveShoppingList(String shoppingList){
-    try {
-      FileWriter fileToWrite;
-      fileToWrite = new FileWriter(savePath);
-      fileToWrite.write(shoppingList);
-      fileToWrite.close();
-    } catch (IOException exception) {
-      return ErrorHandler.couldNotWriteToFile();
-    }
-    return true;
+  public static void saveShoppingList(String shoppingList) throws IOException{
+    FileWriter fileToWrite;
+    fileToWrite = new FileWriter(SAVE_PATH);
+    fileToWrite.write(shoppingList);
+    fileToWrite.close();
   }
 }

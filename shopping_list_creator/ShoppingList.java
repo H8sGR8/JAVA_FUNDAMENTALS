@@ -1,6 +1,8 @@
 package shopping_list_creator;
 
-import java.util.*;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 class Product {
 
@@ -35,7 +37,7 @@ class Category {
       return productsNames;
     }
   
-    public Product checkIfProductExist(String productName){
+    public Product getSpecyficProduct(String productName){
       for (Product product : products) if (product.getProductName().equals(productName)) return product;
       return null;
     }
@@ -47,7 +49,7 @@ class Category {
   
     public boolean removeProductFromCategory(String producrName){
       Product product;
-      if ((product = checkIfProductExist(producrName)) == null) return false;
+      if ((product = getSpecyficProduct(producrName)) == null) return false;
       this.products.remove(product);
       return true;
     }
@@ -58,7 +60,7 @@ class Category {
   
     ArrayList<Category> categories = new ArrayList<>();
 
-    public void fillList(){
+    public void fillList() throws FileNotFoundException{
       int currentCategory;
       Scanner readFile = FileHandler.readFile();
       String nextLine = readFile.nextLine();
@@ -74,20 +76,20 @@ class Category {
       }
     }
   
-    Category checkIfCategoryExist(String categoryName) {
+    Category getSpecyficCategory(String categoryName) {
       for (Category category : categories) if(category.getCategoryName().equals(categoryName)) return category;
       return null;
     }
 
     public void addCategory(String categoryName){
-      if (checkIfCategoryExist(categoryName) != null) return;
+      if (getSpecyficCategory(categoryName) != null) return;
       Category category = new Category(categoryName);
       categories.add(category);
     }
 
     public void removeCategory(String categoryName){
       Category category;
-      if ((category = checkIfCategoryExist(categoryName)) == null) return;
+      if ((category = getSpecyficCategory(categoryName)) == null) return;
       categories.remove(category);
     }
 

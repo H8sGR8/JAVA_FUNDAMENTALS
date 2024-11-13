@@ -1,6 +1,8 @@
 package shopping_list_creator;
 
-import java.util.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Scanner;
 
 
 public class ShoppingListApp {
@@ -10,24 +12,17 @@ public class ShoppingListApp {
 
   ShoppingListApp(){
     select = new Scanner(System.in);
-    shoppingList.fillList();
+    try {
+      shoppingList.fillList();
+    } catch (FileNotFoundException e) {
+      clear();
+      System.out.print("File to read not found");
+      System.exit(1);
+    }
   }
 
   static void clear(){
     System.out.print("\033\143");
-  }
-
-  void displayMainMenu(){
-    System.out.print("""
-      1. Display shopping list
-      2. Save shopping list
-      3. Add element to category
-      4. Delete element from category
-      5. Add a category
-      6. Delete a category
-      7. Info
-      8. Exit
-      """);
   }
 
   void displayShoppingList(){
@@ -38,8 +33,13 @@ public class ShoppingListApp {
   }
 
   void displaySaveShoppingListProcess(){
-    String outputMessage = "Could not save a shopping list";
-    if (FileHandler.saveShoppingList(shoppingList.converToString())) outputMessage = "A shopping list saved in txt file";
+    String outputMessage;
+    try {
+        FileHandler.saveShoppingList(shoppingList.converToString());
+        outputMessage = "A shopping list saved in txt file";
+    } catch (IOException e) {
+      outputMessage = "Could not save a shopping list";
+    }
     do{
       clear();
       System.out.print(outputMessage + "\n\nPress \"q\" to go back to main menu\n");
@@ -53,12 +53,12 @@ public class ShoppingListApp {
     System.out.println("Choose a category by inserting its name\nCetegories: " + shoppingList.getCategoriesNames());
     categoryName = select.nextLine();
     Category category;
-    if((category =  shoppingList.checkIfCategoryExist(categoryName)) != null){
+    if((category =  shoppingList.getSpecyficCategory(categoryName)) != null){
       outputMessage = "could not find a product";
       clear();
       System.out.println("Insert a name of a product to add");
       productName = select.nextLine();
-      if (category.checkIfProductExist(productName) == null) {
+      if (category.getSpecyficProduct(productName) == null) {
         outputMessage = "A product successfully added";
         category.addProductToCategory(productName);
       }
@@ -76,7 +76,7 @@ public class ShoppingListApp {
     System.out.println("Choose a category by inserting its name\nCetegories: " + shoppingList.getCategoriesNames());
     categoryName = select.nextLine();
     Category category;
-    if((category = shoppingList.checkIfCategoryExist(categoryName)) != null){
+    if((category = shoppingList.getSpecyficCategory(categoryName)) != null){
       clear();
       System.out.println("Insert a name of a product to remove\nProducts: " + category.getProductsNames());
       productName = select.nextLine();
@@ -95,7 +95,7 @@ public class ShoppingListApp {
     clear();
     System.out.println("Insert a name of a category to add");
     categoryName = select.nextLine();
-    if(shoppingList.checkIfCategoryExist(categoryName) == null){
+    if(shoppingList.getSpecyficCategory(categoryName) == null){
       shoppingList.addCategory(categoryName);
       outputMessage = "A category added successfully";
     }
@@ -111,7 +111,7 @@ public class ShoppingListApp {
     clear();
     System.out.println("Insert a name of a category to remove\nCategories: " + shoppingList.getCategoriesNames());
     categoryName = select.nextLine();
-    if (shoppingList.checkIfCategoryExist(categoryName) != null){
+    if (shoppingList.getSpecyficCategory(categoryName) != null){
       shoppingList.removeCategory(categoryName);
       outputMessage = "A category successfully removed";
     }
@@ -131,6 +131,19 @@ public class ShoppingListApp {
         Press "q" to go back to main menu
         """);
     }while(!"q".equals(select.nextLine()));
+  }
+
+  void displayMainMenu(){
+    System.out.print("""
+      1. Display shopping list
+      2. Save shopping list
+      3. Add element to category
+      4. Delete element from category
+      5. Add a category
+      6. Delete a category
+      7. Info
+      8. Exit
+      """);
   }
 
   boolean manageMainMenu(){
