@@ -15,6 +15,7 @@ public class TelephoneNumber implements Comparable<TelephoneNumber> {
         for(int i = LOCAL_NUMBER_LEN; i > 0 ; i--) this.localNumber += numberArray[numberArray.length - i];
     }
 
+    @Override
     public String toString(){
         return this.countryCode + " " + this.localNumber;
     }
