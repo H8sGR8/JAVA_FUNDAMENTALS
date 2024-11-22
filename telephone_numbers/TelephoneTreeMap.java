@@ -33,7 +33,7 @@ public class TelephoneTreeMap {
     public static void main(String[] args) {
         TelephoneTreeMap testMap = new TelephoneTreeMap();
         testMap.addPerson("Mateusz", "Kobalczyk", "Polska, Lodz, Kwietniowa 28", "+48 692-151-004");
-        testMap.addCompany("Google", "USA, California, Silicon Vally", "+1 123456789");
+        testMap.addCompany("Google", "USA, California, Silicon Vally", "+12 123456789");
         testMap.printMap();
     }
 }

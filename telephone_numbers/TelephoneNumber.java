@@ -22,10 +22,7 @@ public class TelephoneNumber implements Comparable<TelephoneNumber> {
 
     @Override
     public int compareTo(TelephoneNumber other) {
-        char number1[] = (this.toString()).toCharArray();
-        char number2[] = (other.toString()).toCharArray();
-        if(number1.length - number2.length != 0) return number1.length - number2.length;
-        for(int i = 0; i < number1.length; i++) if((int)number1[i] - (int)number2[i] != 0) return (int)number1[i] - (int)number2[i];
-        return 0;
+        if (this.toString().length() != other.toString().length()) return this.toString().length() - other.toString().length();
+        return this.toString().compareTo(other.toString());
     }
 }
