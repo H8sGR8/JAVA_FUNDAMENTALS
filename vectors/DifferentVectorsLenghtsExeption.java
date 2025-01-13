@@ -1,23 +1,18 @@
 package vectors;
 
+import java.util.ArrayList;
+
 public class DifferentVectorsLenghtsExeption extends Exception {
 
-    Vector exceptionV1;
-    Vector exceptionV2;
+    private final ArrayList<Vector> vectors;
 
-    public DifferentVectorsLenghtsExeption(Vector v1, Vector v2) {
-    exceptionV1 = v1;
-    exceptionV2 = v2;
+    public DifferentVectorsLenghtsExeption(String message, ArrayList<Vector> vectors){
+        super(message);
+        this.vectors = vectors;
     }
 
-    public String lowerOrBigger(){
-        if(exceptionV1.getVectorLenght() > exceptionV2.getVectorLenght()) return "lower";
-        return "bigger";
+    public ArrayList<Vector> getVectors(){
+        return vectors;
     }
 
-    
-
-    public void getMessage(String message){
-        System.out.println(message);
-    }
 }

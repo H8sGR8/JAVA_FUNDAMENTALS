@@ -1,13 +1,28 @@
 package vectors;
 
+import java.util.ArrayList;
+
 public class VectorAddition {
 
-    public static  Vector addVectors(Vector v1, Vector v2) throws DifferentVectorsLenghtsExeption{
+    public static  Vector addVectors(ArrayList<Vector> vectors) throws DifferentVectorsLenghtsExeption{
+        double cord;
         String resultString = "";
-        if(v1.getVectorLenght() != v2.getVectorLenght()) throw new DifferentVectorsLenghtsExeption(v1, v2);
-        for(int i = 0; i < v1.getVectorLenght(); i++){
+        for(int i = 0; i < vectors.size(); i++){
+            if(vectors.get(0).getVectorLenght() != vectors.get(i).getVectorLenght()){
+                ArrayList<Vector> incompatibleVectors = new ArrayList<>();
+                incompatibleVectors.add(vectors.get(0));
+                incompatibleVectors.add(vectors.get(i));
+                throw new DifferentVectorsLenghtsExeption("Vectors have diffrent lenghts", incompatibleVectors);
+            }
+        }
+        for(int i = 0; i < vectors.get(0).getVectorLenght(); i++){
+            cord = 0;
             if(i > 0) resultString += ",";
-            resultString += (v1.vCords.get(i) + v2.vCords.get(i)); 
+            for(Vector v : vectors){
+                cord += v.getVectorCords().get(i);
+            }
+            resultString += cord;
+             
         }
         return new Vector(resultString);
     }

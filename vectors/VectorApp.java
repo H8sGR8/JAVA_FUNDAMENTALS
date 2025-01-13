@@ -1,28 +1,29 @@
 package vectors;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class VectorApp {
 
     Scanner input = new Scanner(System.in);
-    Vector v1;
-    Vector v2;
+    ArrayList<Vector> vectors = new ArrayList<>();
     Vector v3;
     boolean run = true;
 
     public void getInputVectors(){
-        System.out.println("Input first vector");
-        v1 = new Vector(input.nextLine());
-        System.out.println("Input second vector");
-        v2 = new Vector(input.nextLine());
+        vectors.clear();
+        System.out.println("Input vectors");
+        for(String v : input.nextLine().split(" ")){
+            vectors.add(new Vector(v));
+        }
     }
 
     public void makeAddition(){
         try{
-            v3 = VectorAddition.addVectors(v1, v2);
+            v3 = VectorAddition.addVectors(vectors);
             run = false;
         }catch(DifferentVectorsLenghtsExeption e){
-            e.getMessage(e.exceptionV1.vCords + " the vector lenght is " + e.lowerOrBigger() + " than " + e.exceptionV2.getVectorCords() + " vector lenght");
+            System.out.println(e.getMessage());
         }
     }
 
