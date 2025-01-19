@@ -1,0 +1,29 @@
+[
+  {
+    "ID":1,
+    "Data": {
+      "Name": "Mateusz",
+      "Surname": "Kobalczyk",
+      "TeacherID": "1",
+      "Profile": "MatInf"
+    }
+  },
+  {
+    "ID":2,
+    "Data": {
+      "Name": "Julian",
+      "Surname": "Bednarek",
+      "TeacherID": "1",
+      "Profile": "MatInf"
+    }
+  },
+  {
+    "ID":3,
+    "Data": {
+      "Name": "Hubert",
+      "Surname": "Szadkowski",
+      "TeacherID": "2",
+      "Profile": "MatPhys"
+    }
+  }
+]
