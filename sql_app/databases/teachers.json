@@ -14,5 +14,14 @@
             "Surname": "Pawlak",
             "Subject": "Math"
         }
+    },
+    {
+        "ID": 3,
+        "Data": {
+            "Name": "Krzysztof",
+            "Surname": "Klimaszewski",
+            "Subject": "Chemistry"
+        }
     }
+
 ]

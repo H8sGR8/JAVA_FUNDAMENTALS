@@ -9,9 +9,20 @@ public class FileHandler {
         return (JSONArray) new JSONParser().parse(new FileReader("databases\\" + fileName + ".json"));
     }
 
+    static String createSavingString(String data){
+        data = data.replace(":{", ":{\t");
+        data = data.replace("null,", "null,\t");
+        data = data.replace("\",", "\",\t");
+        data = data.replace(",", ",\n\t");
+        data = data.replace("{", "{\n\t");
+        data = data.replace("},", "\n\t},");
+        data = data.replace("}]", "\n}]");
+        return data;
+    }
+
     static void saveFile(String fileName, JSONArray data) throws Exception {
         FileWriter file = new FileWriter("databases\\" + fileName + ".json");
-        file.write(data.toJSONString());
+        file.write(createSavingString(data.toJSONString()));
         file.close();
     }
 }
