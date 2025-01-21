@@ -1,8 +1,3 @@
-import org.json.simple.JSONArray;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-
 class Pair<K, V>{
     K key;
     V value;
@@ -24,7 +19,6 @@ public class AppSQL {
 
     public static void main(String[] args) throws Exception {
         SyntaxReader reader = new SyntaxReader();
-        reader.readInput();
         reader.analiseInput();
     }
 }

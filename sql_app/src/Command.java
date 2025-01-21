@@ -6,7 +6,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
-abstract class Command {}
+abstract class Command {
+
+     public static Set getColumns(JSONObject record){
+        return ((JSONObject) record.get("Data")).keySet();
+    }
+}
 
 class FromCommand extends Command{
     void fromFunction(String dataFile, HashMap<String, JSONArray> databases) throws Exception {
@@ -35,8 +40,8 @@ class SelectCommand extends Command{
     String getValueForKey(HashMap<String, JSONObject> joinedTables, Pair<String, String> key){
         if(!joinedTables.containsKey(key.getFirst())) return "";
         if(key.getSecond().equals("ID")) return joinedTables.get(key.getFirst()).get(key.getSecond()).toString();
-        if(!(getValueForDataKey(joinedTables, key) instanceof Pair))
-                return getValueForDataKey(joinedTables, key).toString();
+        if(getValueForDataKey(joinedTables, key) == null) return null;
+        if(!(getValueForDataKey(joinedTables, key) instanceof Pair)) return getValueForDataKey(joinedTables, key).toString();
         return ((JSONObject)((Pair)(getValueForDataKey(joinedTables, key))).getSecond()).get("ID").toString();
     }
 
@@ -63,10 +68,6 @@ class SelectCommand extends Command{
 }
 
 class InsertCommand extends Command{
-
-    Set getColumns(JSONObject record){
-        return ((JSONObject) record.get("Data")).keySet();
-    }
 
     JSONObject createObject(JSONArray database){
         JSONObject object = new JSONObject();
@@ -107,7 +108,6 @@ class UpdateCommand extends Command{
     void update(String fileName, JSONArray dataToUpdate, String item, String value) throws Exception {
         JSONArray data = FileHandler.getFileData(fileName);
         for (Object o : data){
-
             if (!dataToUpdate.contains(o)) continue;
             if(((JSONObject) ((JSONObject) o).get("Data")).containsKey(item)) ((JSONObject) ((JSONObject) o).get("Data")).put(item, value);
         }
@@ -116,12 +116,26 @@ class UpdateCommand extends Command{
 }
 
 class WhereCommand extends Command{
-    JSONArray where(JSONArray data, Comparator comparator, Object item, Object value) {
-        JSONArray where = new JSONArray();
-        for (Object o : data) {
-            JSONObject record = (JSONObject) o;
-            if(item == "ID") {if (comparator.compare( record.get("ID"), value)) where.add(record);}
-            else if(comparator.compare(((JSONObject) record.get("Data")).get(item), value)) where.add(record);
+
+    boolean selectRecords(Comparator comparator, Pair<String, JSONObject> record, Pair<String, Object> item, Object value) {
+        if(!record.getFirst().equals(item.getFirst())) {
+            if (item.getSecond() == "ID") return comparator.compare(record.getSecond().get("ID"), value);
+            return comparator.compare(((JSONObject) record.getSecond().get("Data")).get(item), value);
+        }
+        else for(Object v : ((JSONObject) record.getSecond().get("Data")).values()) if(v instanceof Pair)
+            return selectRecords(comparator, (Pair) v, item, value);
+        return false;
+    }
+
+    HashMap<String, JSONArray> where(HashMap<String, JSONArray> databases, Comparator comparator, Pair<String, Object> item, Object value) {
+        HashMap<String, JSONArray> where = new HashMap<>();
+        for(String database: databases.keySet()) {
+            JSONArray whereArray = new JSONArray();
+            for (Object o : databases.get(database)) {
+                JSONObject record = (JSONObject) o;
+                if (selectRecords(comparator, new Pair<>(database, record), item, value)) whereArray.add(record);
+            }
+            where.put(database, whereArray);
         }
         return where;
     }
@@ -129,86 +143,101 @@ class WhereCommand extends Command{
 
 abstract class JoinCommand extends Command{
 
-    abstract Pair<JSONArray, JSONArray> join(JSONArray data, Pair<String, JSONArray> dataToJoin, Object referenceValue, Object value);
+    Pair<JSONObject, JSONObject> selectRecords(Pair<String, JSONObject> record, Pair<String, JSONArray> dataToJoin,  Pair<String, String> referenceValue, String value){
+        if(record.getFirst().equals(referenceValue.getFirst())) for (Object o2 : dataToJoin.getSecond()) {
+            JSONObject record2 = (JSONObject) o2;
+            if ((new IsEqual()).compare(((JSONObject) (record.getSecond().get("Data"))).get(referenceValue.getSecond()), record2.get(value))) {
+                ((JSONObject) record.getSecond().get("Data")).put(referenceValue.getSecond(), new Pair(dataToJoin.getFirst(), record2));
+                return new Pair(record.getSecond(), record2);
+            }
+        }
+        else for (Object v : ((JSONObject)record.getSecond().get("Data")).values())
+            if(v instanceof Pair) return selectRecords((Pair)v, dataToJoin, referenceValue, value);
+        return null;
+    }
+
+    abstract HashMap<String, JSONArray> join(HashMap<String, JSONArray> databases, Pair<String, JSONArray> dataToJoin,  Pair<String, String> referenceValue, String value);
 }
 
 class InnerJoinCommand extends JoinCommand{
 
-    Pair<JSONArray, JSONArray> join(JSONArray data, Pair<String, JSONArray> dataToJoin, Object referenceValue, Object value) {
-        JSONArray join = new JSONArray();
-        for (Object o : data) {
-            JSONObject record = (JSONObject) o;
-            for (Object o2 : dataToJoin.getSecond()) {
-                JSONObject record2 = (JSONObject) o2;
-                if((new IsEqual()).compare(((JSONObject)(record.get("Data"))).get(referenceValue), record2.get(value))) {
-                    ((JSONObject) record.get("Data")).put(referenceValue, new Pair(dataToJoin.getFirst(), record2));
-                    join.add(record);
-                    break;
-                }
+    HashMap<String, JSONArray> join(HashMap<String, JSONArray> databases, Pair<String, JSONArray> dataToJoin,  Pair<String, String> referenceValue, String value) {
+        HashMap<String, JSONArray> join = new HashMap<>();
+        for (String database : databases.keySet()) {
+            if(database.equals(dataToJoin.getFirst())) continue;
+            JSONArray joinArray = new JSONArray();
+            for (Object o : databases.get(database)) {
+                JSONObject record = (JSONObject) o;
+                Pair<JSONObject, JSONObject> result = selectRecords(new Pair(database, record), dataToJoin, referenceValue, value);
+                if(result == null) continue;
+                joinArray.add(result.getFirst());
             }
+            join.put(database, joinArray);
         }
-        return new Pair(join, null);
+        return join;
     }
 }
 
 class LeftJoinCommand extends JoinCommand{
 
-    Pair<JSONArray, JSONArray> join(JSONArray data, Pair<String, JSONArray> dataToJoin, Object referenceValue, Object value) {
-        JSONArray join = new JSONArray();
-        for (Object o : data) {
-            JSONObject record = (JSONObject) o;
-            join.add(record);
-            for (Object o2 : dataToJoin.getSecond()) {
-                JSONObject record2 = (JSONObject) o2;
-                if((new IsEqual()).compare(((JSONObject)(record.get("Data"))).get(referenceValue), record2.get(value))) {
-                    ((JSONObject) ((JSONObject) join.getLast()).get("Data")).put(referenceValue, new Pair(dataToJoin.getFirst(), record2));
-                    break;
-                }
+    HashMap<String, JSONArray> join(HashMap<String, JSONArray> databases, Pair<String, JSONArray> dataToJoin,  Pair<String, String> referenceValue, String value) {
+        HashMap<String, JSONArray> join = new HashMap<>();
+        for (String database : databases.keySet()) {
+            if(database.equals(dataToJoin.getFirst())) continue;
+            JSONArray joinArray = new JSONArray();
+            for (Object o : databases.get(database)) {
+                JSONObject record = (JSONObject) o;
+                Pair<JSONObject, JSONObject> result = selectRecords(new Pair(database, record), dataToJoin, referenceValue, value);
+                if(result == null) joinArray.add(record);
+                else joinArray.add(result.getFirst());
             }
+            join.put(database, joinArray);
         }
-        return new Pair(join, null);
+        return join;
     }
 }
 
 class RightJoinCommand extends JoinCommand{
 
-    Pair<JSONArray, JSONArray> join(JSONArray data, Pair<String, JSONArray> dataToJoin, Object referenceValue, Object value) {
-        JSONArray join = new JSONArray();
-        JSONArray notJoined = (JSONArray) dataToJoin.getSecond().clone();
-        for (Object o : data) {
-            JSONObject record = (JSONObject) o;
-            for (Object o2 : dataToJoin.getSecond()) {
-                JSONObject record2 = (JSONObject) o2;
-                if((new IsEqual()).compare(((JSONObject)(record.get("Data"))).get(referenceValue), record2.get(value))) {
-                    ((JSONObject) record.get("Data")).put(referenceValue, new Pair(dataToJoin.getFirst(), record2));
-                    join.add(record);
-                    notJoined.remove(record2);
-                    break;
-                }
+    HashMap<String, JSONArray> join(HashMap<String, JSONArray> databases, Pair<String, JSONArray> dataToJoin,  Pair<String, String> referenceValue, String value) {
+        HashMap<String, JSONArray> join = new HashMap<>();
+        join.put(dataToJoin.getFirst(), (JSONArray) dataToJoin.getSecond().clone());
+        for (String database : databases.keySet()) {
+            if(database.equals(dataToJoin.getFirst())) continue;
+            JSONArray joinArray = new JSONArray();
+            for (Object o : databases.get(database)) {
+                JSONObject record = (JSONObject) o;
+                Pair<JSONObject, JSONObject> result = selectRecords(new Pair(database, record), dataToJoin, referenceValue, value);
+                if(result == null) continue;
+                joinArray.add(result.getFirst());
+                join.get(dataToJoin.getFirst()).remove(result.getSecond());
             }
+            join.put(database, joinArray);
         }
-        return new Pair(join, notJoined);
+        return join;
     }
 }
 
 class FullJoinCommand extends JoinCommand{
 
-    Pair<JSONArray, JSONArray> join(JSONArray data, Pair<String, JSONArray> dataToJoin, Object referenceValue, Object value) {
-        JSONArray join = new JSONArray();
-        JSONArray notJoined = (JSONArray) dataToJoin.getSecond().clone();
-        for (Object o : data) {
-            JSONObject record = (JSONObject) o;
-            join.add(record);
-            for (Object o2 : dataToJoin.getSecond()) {
-                JSONObject record2 = (JSONObject) o2;
-                if((new IsEqual()).compare(((JSONObject)(record.get("Data"))).get(referenceValue), record2.get(value))) {
-                    ((JSONObject) ((JSONObject) join.getLast()).get("Data")).put(referenceValue, new Pair(dataToJoin.getFirst(), record2));
-                    notJoined.remove(record2);
-                    break;
+    HashMap<String, JSONArray> join(HashMap<String, JSONArray> databases, Pair<String, JSONArray> dataToJoin,  Pair<String, String> referenceValue, String value) {
+        HashMap<String, JSONArray> join = new HashMap<>();
+        join.put(dataToJoin.getFirst(), (JSONArray) dataToJoin.getSecond().clone());
+        for (String database : databases.keySet()) {
+            if(database.equals(dataToJoin.getFirst())) continue;
+            JSONArray joinArray = new JSONArray();
+            for (Object o : databases.get(database)) {
+                JSONObject record = (JSONObject) o;
+                Pair<JSONObject, JSONObject> result = selectRecords(new Pair(database, record), dataToJoin, referenceValue, value);
+                if(result == null) joinArray.add(record);
+                else{
+                    joinArray.add(result.getFirst());
+                    join.get(dataToJoin.getFirst()).remove(result.getSecond());
                 }
             }
+            join.put(database, joinArray);
         }
-        return new Pair(join, notJoined);
+        return join;
     }
 }
 
