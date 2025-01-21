@@ -84,7 +84,7 @@ class InsertCommand extends Command{
         return (long)record.get("ID") + 1;
     }
 
-    void insert(String fileName, ArrayList<String> selectedItems, ArrayList<ArrayList<String>> newObjects) throws Exception {
+    int insert(String fileName, ArrayList<String> selectedItems, ArrayList<ArrayList<String>> newObjects) throws Exception {
         JSONArray data = FileHandler.getFileData(fileName);
         for(ArrayList<String> object : newObjects) {
             JSONObject newObject = createObject(data);
@@ -93,41 +93,46 @@ class InsertCommand extends Command{
             data.add(newObject);
         }
         FileHandler.saveFile(fileName, data);
+        return newObjects.size();
     }
 }
 
 class DeleteCommand extends Command{
-    void delete(String fileName, JSONArray dataToDelete) throws Exception {
+    int delete(String fileName, JSONArray dataToDelete) throws Exception {
         JSONArray data = FileHandler.getFileData(fileName);
         for (Object o : dataToDelete) data.remove(o);
         FileHandler.saveFile(fileName, data);
+        return dataToDelete.size();
     }
 }
 
 class UpdateCommand extends Command{
-    void update(String fileName, JSONArray dataToUpdate, String item, String value) throws Exception {
+    int update(String fileName, JSONArray dataToUpdate, ArrayList<Pair<String, String>> pairsToUpdate) throws Exception {
         JSONArray data = FileHandler.getFileData(fileName);
         for (Object o : data){
             if (!dataToUpdate.contains(o)) continue;
-            if(((JSONObject) ((JSONObject) o).get("Data")).containsKey(item)) ((JSONObject) ((JSONObject) o).get("Data")).put(item, value);
+            for (Pair<String, String> pair : pairsToUpdate)
+                if (((JSONObject) ((JSONObject) o).get("Data")).containsKey(pair.getFirst()))
+                    ((JSONObject) ((JSONObject) o).get("Data")).put(pair.getFirst(), pair.getSecond());
         }
         FileHandler.saveFile(fileName, data);
+        return dataToUpdate.size();
     }
 }
 
 class WhereCommand extends Command{
 
-    boolean selectRecords(Comparator comparator, Pair<String, JSONObject> record, Pair<String, Object> item, Object value) {
-        if(!record.getFirst().equals(item.getFirst())) {
-            if (item.getSecond() == "ID") return comparator.compare(record.getSecond().get("ID"), value);
-            return comparator.compare(((JSONObject) record.getSecond().get("Data")).get(item), value);
+    boolean selectRecords(Comparator comparator, Pair<String, JSONObject> record, Pair<String, String> item, Object value) {
+        if(record.getFirst().equals(item.getFirst())) {
+            if (item.getSecond().equals("ID")) return comparator.compare(record.getSecond().get("ID"), value);
+            return comparator.compare(((JSONObject) record.getSecond().get("Data")).get(item.getSecond()), value);
         }
         else for(Object v : ((JSONObject) record.getSecond().get("Data")).values()) if(v instanceof Pair)
             return selectRecords(comparator, (Pair) v, item, value);
         return false;
     }
 
-    HashMap<String, JSONArray> where(HashMap<String, JSONArray> databases, Comparator comparator, Pair<String, Object> item, Object value) {
+    HashMap<String, JSONArray> where(HashMap<String, JSONArray> databases, Comparator comparator, Pair<String, String> item, Object value) {
         HashMap<String, JSONArray> where = new HashMap<>();
         for(String database: databases.keySet()) {
             JSONArray whereArray = new JSONArray();
