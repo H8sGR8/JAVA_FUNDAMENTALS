@@ -22,9 +22,3 @@ public class AppSQL {
         reader.analiseInput();
     }
 }
-
-/*
--------++------++
-       || auto ||
--------++------++
- */

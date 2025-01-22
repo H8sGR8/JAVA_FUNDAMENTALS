@@ -56,7 +56,9 @@ abstract class CommandSyntax{
         return instructionsForDatabases.indexOf(';');
     }
 
-    abstract int executeCommandsAlternatingDatabases(int i, String instructionsForDatabases, String word, int end, int brackets) throws Exception;
+    int executeCommandsAlternatingDatabases(int i, String instructionsForDatabases, String word, int end, int brackets) throws Exception{
+        return 0;
+    }
 
     int analiseInstructionForDatabase(String instructionsForDatabases, int start, int end, int brackets) throws Exception {
         int bracketsCount = brackets;
@@ -163,7 +165,29 @@ class SelecCommandSyntax extends CommandSyntax{
 
     String createOutputString(ArrayList<ArrayList<String>> data){
         String output = "";
-        for(ArrayList<String> item : data) output += item.toString() + "\n";
+        ArrayList<Integer> cellsLen = new ArrayList<>();
+        for(ArrayList<String> item : data) for(int i = 0; i < item.size(); i++){
+            if(cellsLen.size() < i + 1) cellsLen.add(item.get(i).length());
+            else if (cellsLen.get(i) < item.get(i).length()) cellsLen.set(i, item.get(i).length());
+        }
+        for(ArrayList<String> row : data){
+            for(Integer len : cellsLen){
+                output += "++";
+                for(int i = 0; i < len + 2; i++) output += "-";
+            }
+            output += "++\n";
+            for(int i = 0; i < row.size(); i++){
+                output += "|| ";
+                output += row.get(i);
+                for(int j = 0; j <= cellsLen.get(i) - row.get(i).length(); j++) output += " ";
+            }
+            output += "||\n";
+        }
+        for(Integer len : cellsLen){
+            output += "++";
+            for(int i = 0; i < len + 2; i++) output += "-";
+        }
+        output += "++";
         return output;
     }
 
@@ -183,12 +207,33 @@ class InsertCommandSyntax extends CommandSyntax {
         super(words);
     }
 
-    int executeCommandsAlternatingDatabases(int i, String instructionsForDatabases, String word, int end, int brackets){
-        return 0;
+    ArrayList<ArrayList<String>> getNewObjectsForInsert(int index){
+        StringBuilder instructionsForDatabases = new StringBuilder();
+        while (++index < words.size() - 1) instructionsForDatabases.append(words.get(index)).append(" ");
+        instructionsForDatabases.append(words.get(index));
+        ArrayList<String> newObjects = new ArrayList<>(Arrays.asList(instructionsForDatabases.toString().split(";")));
+        ArrayList<ArrayList<String>> newObjectsForInsert = new ArrayList<>();
+        for (String object : newObjects) {
+            object = object.trim();
+            ArrayList<String> newObject = new ArrayList<>();
+            for (String value : object.split(" ")) newObject.add(value.replace(
+                    ",", "").replace("(", "").replace(")", ""));
+            newObjectsForInsert.add(newObject);
+        }
+        return newObjectsForInsert;
     }
 
-    String executeCommand() {
-        return "insert";
+    String executeCommand() throws Exception {
+        if (!words.contains("INTO")) throw new Exception("Could not find INTO");
+        int index = words.indexOf("INTO") + 1;
+        addDatabaseToDatabases(words.get(index));
+        if (!words.contains("VALUES")) throw new Exception("Could not find VALUES");
+        ArrayList<String> selectedColumns = new ArrayList<>();
+        for(index++; index < words.indexOf("VALUES"); index++) selectedColumns.add(words.get(index).replace(
+                ",", "").replace("(", "").replace(")", ""));
+        ArrayList<ArrayList<String>> newObjectsForInsert = getNewObjectsForInsert(index);
+                return createOutputString(
+                        new InsertCommand().insert(words.get(words.indexOf("INTO") + 1), selectedColumns, newObjectsForInsert));
     }
 }
 

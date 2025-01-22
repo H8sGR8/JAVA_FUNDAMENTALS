@@ -1,27 +1,24 @@
-[
-    {
-        "ID": 1,
-        "Data": {
-            "Name": "Anna",
-            "Surname": "Czernielewska",
-            "Subject": "English"
-        }
-    },
-    {
-        "ID": 2,
-        "Data": {
-            "Name": "Przemyslaw",
-            "Surname": "Pawlak",
-            "Subject": "Math"
-        }
-    },
-    {
-        "ID": 3,
-        "Data": {
-            "Name": "Krzysztof",
-            "Surname": "Klimaszewski",
-            "Subject": "Chemistry"
-        }
-    }
-
-]
+[{
+	"Data":{
+		"Surname":"Czernielewska",
+		"Subject":"English",
+		"Name":"Anna"
+	},
+	"ID":1
+	},
+	{
+	"Data":{
+		"Surname":"Pawlak",
+		"Subject":"Math",
+		"Name":"Przemyslaw"
+	},
+	"ID":2
+	},
+	{
+	"Data":{
+		"Surname":"Klimaszewski",
+		"Subject":"Chemistry",
+		"Name":"Krzysztof"
+	},
+	"ID":3
+}]
