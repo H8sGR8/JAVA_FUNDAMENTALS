@@ -40,7 +40,7 @@ class SelectCommand extends Command{
     String getValueForKey(HashMap<String, JSONObject> joinedTables, Pair<String, String> key){
         if(!joinedTables.containsKey(key.getFirst())) return "";
         if(key.getSecond().equals("ID")) return joinedTables.get(key.getFirst()).get(key.getSecond()).toString();
-        if(getValueForDataKey(joinedTables, key) == null) return null;
+        if(getValueForDataKey(joinedTables, key) == null) return "";
         if(!(getValueForDataKey(joinedTables, key) instanceof Pair)) return getValueForDataKey(joinedTables, key).toString();
         return ((JSONObject)((Pair)(getValueForDataKey(joinedTables, key))).getSecond()).get("ID").toString();
     }

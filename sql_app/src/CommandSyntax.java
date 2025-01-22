@@ -163,32 +163,44 @@ class SelecCommandSyntax extends CommandSyntax{
         return i;
     }
 
+    int getLen(ArrayList<String> item, int index)   {
+        if(item.get(index) == null) return 0;
+        return item.get(index).length();
+    }
+
+    StringBuilder addLineDividingRows(StringBuilder output, ArrayList<Integer> cellsLen) {
+        for(Integer len : cellsLen){
+            output.append("++");
+            output.append("-".repeat(Math.max(0, len + 2)));
+        }
+        output.append("++\n");
+        return output;
+    }
+
+    StringBuilder addRow(StringBuilder output, ArrayList<Integer> cellsLen, ArrayList<String> row){
+        for(int i = 0; i < row.size(); i++){
+            output.append("|| ");
+            output.append(row.get(i));
+            output.append(" ".repeat(Math.max(0, cellsLen.get(i) - getLen(row, i) + 1)));
+        }
+        output.append("||\n");
+        return output;
+    }
+
+
     String createOutputString(ArrayList<ArrayList<String>> data){
-        String output = "";
+        StringBuilder output = new StringBuilder();
         ArrayList<Integer> cellsLen = new ArrayList<>();
         for(ArrayList<String> item : data) for(int i = 0; i < item.size(); i++){
             if(cellsLen.size() < i + 1) cellsLen.add(item.get(i).length());
-            else if (cellsLen.get(i) < item.get(i).length()) cellsLen.set(i, item.get(i).length());
+            else if (cellsLen.get(i) < getLen(item, i)) cellsLen.set(i, item.get(i).length());
         }
         for(ArrayList<String> row : data){
-            for(Integer len : cellsLen){
-                output += "++";
-                for(int i = 0; i < len + 2; i++) output += "-";
-            }
-            output += "++\n";
-            for(int i = 0; i < row.size(); i++){
-                output += "|| ";
-                output += row.get(i);
-                for(int j = 0; j <= cellsLen.get(i) - row.get(i).length(); j++) output += " ";
-            }
-            output += "||\n";
+            output = addLineDividingRows(output, cellsLen);
+            output = addRow(output, cellsLen, row);
         }
-        for(Integer len : cellsLen){
-            output += "++";
-            for(int i = 0; i < len + 2; i++) output += "-";
-        }
-        output += "++";
-        return output;
+        output = addLineDividingRows(output, cellsLen);
+        return output.toString();
     }
 
     String executeCommand() throws Exception {

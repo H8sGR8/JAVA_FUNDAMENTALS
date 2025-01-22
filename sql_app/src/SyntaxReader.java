@@ -19,10 +19,11 @@ public class SyntaxReader {
         keywords.add("values");
         keywords.add("set");
         keywords.add("into");
-        keywords.add("left join");
-        keywords.add("right join");
-        keywords.add("inner join");
-        keywords.add("full join");
+        keywords.add("left");
+        keywords.add("right");
+        keywords.add("inner");
+        keywords.add("full");
+        keywords.add("join");
         keywords.add("on");
     }
 
